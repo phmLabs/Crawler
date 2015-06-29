@@ -15,7 +15,5 @@
   "require": {
     "phmlabs/html": "~1.0",
     "psr/http-message": "1.0",
-    "guzzlehttp/guzzle": "~6.0"
   }
 }
-

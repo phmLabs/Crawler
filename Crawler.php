@@ -2,8 +2,8 @@
 
 namespace whm\Crawler;
 
-use GuzzleHttp\ClientInterface;
-use GuzzleHttp\Psr7\Request;
+use Ivory\HttpAdapter\Message\Request;
+use Ivory\HttpAdapter\PsrHttpAdapterInterface;
 use Psr\Http\Message\UriInterface;
 use whm\Html\Document;
 
@@ -13,7 +13,7 @@ class Crawler
 
     private $pageContainer;
 
-    public function __construct(ClientInterface $httpClient, UriInterface $startUri)
+    public function __construct(PsrHttpAdapterInterface $httpClient, UriInterface $startUri)
     {
         $this->httpClient = $httpClient;
         $this->pageContainer = new PageContainer();
@@ -30,8 +30,11 @@ class Crawler
 
         $uri = $uris[0];
 
-        $request = new Request('GET', $uri);
-        $reponse = $this->httpClient->send($request);
+        var_dump($uri);
+
+        $requests[] = new Request($uri, 'GET', 'php://memory', ['Accept-Encoding' => 'gzip'], []);
+
+        $reponse = $this->httpClient->sendRequests($requests);
 
         $document = new Document((string) $reponse->getBody());
 
