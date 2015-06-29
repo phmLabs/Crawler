@@ -1,0 +1,21 @@
+{
+  "name": "phmlabs/crawler",
+  "version": "1.0.0",
+  "type": "library",
+  "description": "whm library for crwling websites",
+  "keywords": [],
+  "homepage": "http://www.thewebhatesme.com",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "whm\\Crawler\\": ""
+    }
+  },
+
+  "require": {
+    "phmlabs/html": "~1.0",
+    "psr/http-message": "1.0",
+    "guzzlehttp/guzzle": "~6.0"
+  }
+}
+
