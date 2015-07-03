@@ -1,6 +1,6 @@
 {
   "name": "phmlabs/crawler",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "type": "library",
   "description": "whm library for crwling websites",
   "keywords": [],
