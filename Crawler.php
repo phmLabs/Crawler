@@ -5,7 +5,9 @@ namespace whm\Crawler;
 use Ivory\HttpAdapter\Message\Request;
 use Ivory\HttpAdapter\PsrHttpAdapterInterface;
 use Psr\Http\Message\UriInterface;
+use whm\Crawler\PageContainer\PageContainer;
 use whm\Html\Document;
+use whm\Html\Uri;
 
 class Crawler
 {
@@ -16,15 +18,17 @@ class Crawler
 
     private $responseCache;
 
+    private $comingFrom = array();
+
     /**
      * @var Filter[]
      */
     private $filters = array();
 
-    public function __construct(PsrHttpAdapterInterface $httpClient, UriInterface $startUri, $paralellRequests = 5)
+    public function __construct(PsrHttpAdapterInterface $httpClient, PageContainer $container,  UriInterface $startUri, $paralellRequests = 5)
     {
         $this->httpClient = $httpClient;
-        $this->pageContainer = new PageContainer();
+        $this->pageContainer = $container;
         $this->pageContainer->push($startUri);
         $this->startUri = $startUri;
         $this->parallelReqeusts = $paralellRequests;
@@ -50,7 +54,7 @@ class Crawler
         if (count($this->responseCache) == 0) {
             $urls = $this->pageContainer->pop($this->parallelReqeusts);
 
-            if(empty($urls)) {
+            if (empty($urls)) {
                 return false;
             }
 
@@ -62,7 +66,7 @@ class Crawler
                 }
             }
 
-            if(empty($requests)) {
+            if (empty($requests)) {
                 return $this->next();
             }
 
@@ -71,7 +75,7 @@ class Crawler
 
         $response = array_pop($this->responseCache);
 
-        $document = new Document((string) $response->getBody());
+        $document = new Document((string)$response->getBody());
 
         if ($response->hasHeader('Content-Type')) {
             $contentTypeElements = explode(';', $response->getHeader('Content-Type')[0]);
@@ -81,11 +85,20 @@ class Crawler
                 $elements = $document->getUnorderedDependencies($response->getUri());
 
                 foreach ($elements as $element) {
+                    $urlString = (string)$element;
+                    if (!array_key_exists($urlString, $this->comingFrom)) {
+                        $this->comingFrom[$urlString] = $response->getUri();
+                    }
                     $this->pageContainer->push($element);
                 }
             }
         }
 
         return $response;
+    }
+
+    public function getComingFrom(Uri $uri)
+    {
+        return $this->comingFrom[(string)$uri];
     }
 }

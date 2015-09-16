@@ -1,10 +1,10 @@
 <?php
 
-namespace whm\Crawler;
+namespace whm\Crawler\PageContainer;
 
 use Psr\Http\Message\UriInterface;
 
-class PageContainer
+class SimpleContainer implements PageContainer
 {
     private $currentElements = [];
     private $allElements = [];
@@ -35,4 +35,3 @@ class PageContainer
         return $elements;
     }
 }
-
