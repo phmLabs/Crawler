@@ -3,6 +3,7 @@
 namespace whm\Crawler;
 
 use Ivory\HttpAdapter\Message\Request;
+use Ivory\HttpAdapter\MultiHttpAdapterException;
 use Ivory\HttpAdapter\PsrHttpAdapterInterface;
 use Psr\Http\Message\UriInterface;
 use whm\Crawler\PageContainer\PageContainer;
@@ -25,7 +26,7 @@ class Crawler
      */
     private $filters = array();
 
-    public function __construct(PsrHttpAdapterInterface $httpClient, PageContainer $container,  UriInterface $startUri, $paralellRequests = 5)
+    public function __construct(PsrHttpAdapterInterface $httpClient, PageContainer $container, UriInterface $startUri, $paralellRequests = 5)
     {
         $this->httpClient = $httpClient;
         $this->pageContainer = $container;
@@ -70,7 +71,16 @@ class Crawler
                 return $this->next();
             }
 
-            $this->responseCache = $this->httpClient->sendRequests($requests);
+            try {
+                $this->responseCache = $this->httpClient->sendRequests($requests);
+            } catch (MultiHttpAdapterException $e) {
+                $this->responseCache = $e->getResponses();
+                $exeptions = $e->getExceptions();
+                foreach ($exeptions as $exception) {
+                    $this->responseCache[] = $exception->getResponse();
+                }
+            }
+
         }
 
         $response = array_pop($this->responseCache);
@@ -97,8 +107,17 @@ class Crawler
         return $response;
     }
 
-    public function getComingFrom(Uri $uri)
+    /**
+     * @param UriInterface $uri
+     * @return mixed
+     */
+    public function getComingFrom(UriInterface $uri)
     {
-        return $this->comingFrom[(string)$uri];
+        if (array_key_exists((string)$uri, $this->comingFrom)) {
+            return $this->comingFrom[(string)$uri];
+        } else {
+            return "";
+        }
+
     }
 }
