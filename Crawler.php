@@ -70,17 +70,32 @@ class Crawler
             if (empty($requests)) {
                 return $this->next();
             }
-
             try {
                 $this->responseCache = $this->httpClient->sendRequests($requests);
             } catch (MultiHttpAdapterException $e) {
-                $this->responseCache = $e->getResponses();
-                $exeptions = $e->getExceptions();
-                foreach ($exeptions as $exception) {
-                    $this->responseCache[] = $exception->getResponse();
+                $exceptions = $e->getExceptions();
+                $errorMessages = "";
+                foreach ($exceptions as $exception) {
+
+                    // @fixme this must be part of the http client
+                    $message = $exception->getMessage();
+                    if (strpos($message, "An error occurred when fetching the URI") === 0) {
+                        $url = substr($message, "41", strpos($message, '"', 41) - 41);
+                        if(strpos($url, '/') === 0) {
+                            $this->pageContainer->push(new Uri($this->startUri->getScheme() . '://' . $this->startUri->getHost() . $url));
+                        }
+                    }else{
+                        $errorMessages .= $exception->getMessage() . "\n";
+                    }
+                }
+                if( $errorMessages != "") {
+                    throw new \RuntimeException($errorMessages);
                 }
             }
+        }
 
+        if( empty($this->responseCache )) {
+            return $this->next();
         }
 
         $response = array_pop($this->responseCache);

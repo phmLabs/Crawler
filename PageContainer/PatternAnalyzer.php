@@ -33,7 +33,7 @@ class PatternAnalyzer
     {
         $uriString = $this->uri->getPath();
 
-        if (substr($uriString, strlen($uriString)-1) == "/") {
+        if (substr($uriString, strlen($uriString) - 1) == "/") {
             return 'html';
         }
 
@@ -73,7 +73,7 @@ class PatternAnalyzer
         // host
         $pattern .= $this->uri->getHost() . ':';
 
-        $path = $this->uri->getPath();
+        $path = $this->uri->getPath() . '?' . $this->uri->getQuery();
 
         $pathNew = preg_replace("^[a-f0-9]{32}^", "<h>", $path);
         $pathNew = preg_replace("^[a-z\-\_]{1,}^i", "<s>", $pathNew);

@@ -13,25 +13,47 @@ class PatternAwareContainer implements PageContainer
 
     private $knownPattern = [];
 
+    private $registeredPatterns = [];
+
+    public function registerPattern($name, $regExPattern)
+    {
+        $this->registeredPatterns[$name] = $regExPattern;
+    }
+
     public function getAllElements()
     {
         return array_merge($this->newPatternElements, $this->knownPatternElements);
     }
 
+    /**
+     * @param UriInterface $uri
+     */
     public function push(UriInterface $uri)
     {
         $uriString = (string)$uri;
 
-        $analyzer = new PatternAnalyzer($uri);
-        $pattern = $analyzer->getPattern();
+        if (!array_key_exists($uriString, $this->allElements)) {
+            $this->allElements[$uriString] = true;
 
-        $this->allElements[$uriString] = true;
+            $pattern = "";
+            foreach ($this->registeredPatterns as $name => $regExPattern) {
+                if (preg_match($regExPattern, $uriString)) {
+                    $pattern = $name;
+                    break;
+                }
+            }
 
-        if (array_key_exists($pattern, $this->knownPattern)) {
-            $this->knownPatternElements[] = $uri;
-        } else {
-            $this->newPatternElements[] = $uri;
-            $this->knownPattern[$pattern] = true;
+            if (!$pattern) {
+                $analyzer = new PatternAnalyzer($uri);
+                $pattern = $analyzer->getPattern();
+            }
+
+            if (array_key_exists($pattern, $this->knownPattern)) {
+                $this->knownPatternElements[] = $uri;
+            } else {
+                $this->newPatternElements[] = $uri;
+                $this->knownPattern[$pattern] = true;
+            }
         }
     }
 
@@ -42,7 +64,6 @@ class PatternAwareContainer implements PageContainer
         } else {
             return array_pop($this->knownPatternElements);
         }
-
     }
 
     public function pop($count = 1)
