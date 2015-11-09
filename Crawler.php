@@ -26,13 +26,13 @@ class Crawler
      */
     private $filters = array();
 
-    public function __construct(PsrHttpAdapterInterface $httpClient, PageContainer $container, UriInterface $startUri, $paralellRequests = 5)
+    public function __construct(PsrHttpAdapterInterface $httpClient, PageContainer $container, UriInterface $startUri, $parallelRequests = 5)
     {
         $this->httpClient = $httpClient;
         $this->pageContainer = $container;
         $this->pageContainer->push($startUri);
         $this->startUri = $startUri;
-        $this->parallelReqeusts = $paralellRequests;
+        $this->parallelReqeusts = $parallelRequests;
     }
 
     public function addFilter(Filter $filter)
@@ -81,26 +81,26 @@ class Crawler
                     $message = $exception->getMessage();
                     if (strpos($message, "An error occurred when fetching the URI") === 0) {
                         $url = substr($message, "41", strpos($message, '"', 41) - 41);
-                        if(strpos($url, '/') === 0) {
+                        if (strpos($url, '/') === 0) {
                             $this->pageContainer->push(new Uri($this->startUri->getScheme() . '://' . $this->startUri->getHost() . $url));
                         }
-                    }else{
+                    } else {
                         $errorMessages .= $exception->getMessage() . "\n";
                     }
                 }
-                if( $errorMessages != "") {
+                if ($errorMessages != "") {
                     throw new \RuntimeException($errorMessages);
                 }
             }
         }
 
-        if( empty($this->responseCache )) {
+        if (empty($this->responseCache)) {
             return $this->next();
         }
 
         $response = array_pop($this->responseCache);
 
-        $document = new Document((string)$response->getBody());
+        $document = new Document((string)$response->getBody(), true);
 
         if ($response->hasHeader('Content-Type')) {
             $contentTypeElements = explode(';', $response->getHeader('Content-Type')[0]);
@@ -110,7 +110,7 @@ class Crawler
                 $elements = $document->getUnorderedDependencies($response->getUri());
 
                 foreach ($elements as $element) {
-                    $urlString = (string)$element;
+                    $urlString = $this->createCleanUriString($element);
                     if (!array_key_exists($urlString, $this->comingFrom)) {
                         $this->comingFrom[$urlString] = $response->getUri();
                     }
@@ -120,6 +120,17 @@ class Crawler
         }
 
         return $response;
+    }
+
+    /**
+     * "Repair" the uri as a browser would do it
+     *
+     * @param Uri $uri
+     * @return string
+     */
+    private function createCleanUriString(Uri $uri)
+    {
+        return trim((string)$uri);
     }
 
     /**
