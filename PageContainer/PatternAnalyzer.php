@@ -2,7 +2,7 @@
 
 namespace whm\Crawler\PageContainer;
 
-use whm\Html\Uri;
+use Psr\Http\Message\UriInterface;
 
 class PatternAnalyzer
 {
@@ -18,7 +18,7 @@ class PatternAnalyzer
      *
      * @param Uri $uri
      */
-    public function __construct(Uri $uri)
+    public function __construct(UriInterface $uri)
     {
         $this->uri = $uri;
     }
