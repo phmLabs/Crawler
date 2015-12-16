@@ -128,7 +128,7 @@ class Crawler
      * @param Uri $uri
      * @return string
      */
-    private function createCleanUriString(Uri $uri)
+    private function createCleanUriString(UriInterface $uri)
     {
         return trim((string)$uri);
     }
