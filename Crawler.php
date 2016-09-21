@@ -2,21 +2,29 @@
 
 namespace whm\Crawler;
 
-use Ivory\HttpAdapter\Message\Request;
+use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Response;
 use Ivory\HttpAdapter\MultiHttpAdapterException;
 use Ivory\HttpAdapter\PsrHttpAdapterInterface;
 use Psr\Http\Message\UriInterface;
+use whm\Crawler\Http\RequestFactory;
 use whm\Crawler\PageContainer\PageContainer;
 use whm\Html\Document;
 use whm\Html\Uri;
 
 class Crawler
 {
+    /**
+     * @var Client
+     */
     private $httpClient;
     private $startUri;
     private $pageContainer;
     private $parallelReqeusts;
 
+    /**
+     * @var Response[]
+     */
     private $responseCache;
 
     private $comingFrom = array();
@@ -29,6 +37,9 @@ class Crawler
     public function __construct(PsrHttpAdapterInterface $httpClient, PageContainer $container, UriInterface $startUri, $parallelRequests = 5)
     {
         $this->httpClient = $httpClient;
+
+        // $this->httpClient = new Client();
+
         $this->pageContainer = $container;
         $this->pageContainer->push($startUri);
         $this->startUri = $startUri;
@@ -63,7 +74,8 @@ class Crawler
 
             foreach ($urls as $url) {
                 if (!$this->isFiltered($url)) {
-                    $requests[] = new Request($url, 'GET', 'php://memory', ['Accept-Encoding' => 'gzip'], []);
+                    $request = RequestFactory::getRequest($url, 'GET', 'php://memory', [], []);
+                    $requests[] = $request;
                 }
             }
 
@@ -100,13 +112,13 @@ class Crawler
 
         $response = array_pop($this->responseCache);
 
-        $document = new Document((string)$response->getBody(), true);
-
         if ($response->hasHeader('Content-Type')) {
             $contentTypeElements = explode(';', $response->getHeader('Content-Type')[0]);
             $contentType = array_shift($contentTypeElements);
 
             if ($contentType === "text/html") {
+
+                $document = new Document((string)$response->getBody(), true);
                 $elements = $document->getUnorderedDependencies($response->getUri());
 
                 foreach ($elements as $element) {
