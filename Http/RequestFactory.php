@@ -6,7 +6,7 @@ use Ivory\HttpAdapter\Message\Request;
 
 class RequestFactory
 {
-    private static $standardHeaders;
+    private static $standardHeaders = [];
 
     public static function addStandardHeader($key, $value)
     {
