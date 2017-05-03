@@ -2,7 +2,7 @@
 
 namespace whm\Crawler\Http;
 
-use Ivory\HttpAdapter\Message\Request;
+use GuzzleHttp\Psr7\Request;
 
 class RequestFactory
 {
@@ -16,6 +16,6 @@ class RequestFactory
     public static function getRequest($uri = null, $method = null, $body = 'php://memory', array $headers = array(), array $parameters = array())
     {
         $headers = array_merge(self::$standardHeaders, $headers);
-        return new Request($uri, $method, $body, $headers, $parameters);
+        return new Request($method, $uri, $headers, $body, $parameters);
     }
 }

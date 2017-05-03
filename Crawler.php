@@ -6,6 +6,8 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response;
 use Ivory\HttpAdapter\MultiHttpAdapterException;
 use Ivory\HttpAdapter\PsrHttpAdapterInterface;
+use phm\HttpWebdriverClient\Http\Client\HttpClient;
+use phm\HttpWebdriverClient\Http\MultiRequestsException;
 use Psr\Http\Message\UriInterface;
 use whm\Crawler\Http\RequestFactory;
 use whm\Crawler\PageContainer\PageContainer;
@@ -34,7 +36,7 @@ class Crawler
      */
     private $filters = array();
 
-    public function __construct(PsrHttpAdapterInterface $httpClient, PageContainer $container, UriInterface $startUri, $parallelRequests = 5)
+    public function __construct(HttpClient $httpClient, PageContainer $container, UriInterface $startUri, $parallelRequests = 5)
     {
         $this->httpClient = $httpClient;
 
@@ -84,7 +86,7 @@ class Crawler
             }
             try {
                 $this->responseCache = $this->httpClient->sendRequests($requests);
-            } catch (MultiHttpAdapterException $e) {
+            } catch (MultiRequestsException $e) {
                 $exceptions = $e->getExceptions();
                 $errorMessages = "";
                 foreach ($exceptions as $exception) {
