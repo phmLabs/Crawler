@@ -8,6 +8,7 @@ use Ivory\HttpAdapter\MultiHttpAdapterException;
 use Ivory\HttpAdapter\PsrHttpAdapterInterface;
 use phm\HttpWebdriverClient\Http\Client\HttpClient;
 use phm\HttpWebdriverClient\Http\MultiRequestsException;
+use phm\HttpWebdriverClient\Http\Response\EffectiveUriAwareResponse;
 use Psr\Http\Message\UriInterface;
 use whm\Crawler\Http\RequestFactory;
 use whm\Crawler\PageContainer\PageContainer;
@@ -121,9 +122,17 @@ class Crawler
             if ($contentType === "text/html") {
 
                 $document = new Document((string)$response->getBody(), true);
-                $elements = $document->getUnorderedDependencies($response->getUri());
+
+                if ($response instanceof EffectiveUriAwareResponse) {
+                    $originUri = $response->getEffectiveUri();
+                } else {
+                    $originUri = $response->getUri();
+                }
+
+                $elements = $document->getUnorderedDependencies($originUri);
 
                 foreach ($elements as $element) {
+
                     $urlString = $this->createCleanUriString($element);
                     if (!array_key_exists($urlString, $this->comingFrom)) {
                         $this->comingFrom[$urlString] = $response->getUri();
