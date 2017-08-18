@@ -17,8 +17,9 @@ interface PageContainer
      * Adds an Uri to the container
      *
      * @param UriInterface $uri
+     * @param boolean $atBeginning
      */
-    public function push(UriInterface $uri);
+    public function push(UriInterface $uri, $atBeginning = false);
 
     /**
      * Returns a given number of Uris

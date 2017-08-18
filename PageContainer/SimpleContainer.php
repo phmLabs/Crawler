@@ -14,7 +14,7 @@ class SimpleContainer implements PageContainer
         return $this->allElements;
     }
 
-    public function push(UriInterface $uri)
+    public function push(UriInterface $uri, $atBeginning = false)
     {
         $uriString = (string) $uri;
         if (!array_key_exists($uriString, $this->allElements)) {

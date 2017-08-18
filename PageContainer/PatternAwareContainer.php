@@ -28,7 +28,7 @@ class PatternAwareContainer implements PageContainer
     /**
      * @param UriInterface $uri
      */
-    public function push(UriInterface $uri)
+    public function push(UriInterface $uri, $atBeginning = false)
     {
         $uriString = (string)$uri;
 
@@ -48,10 +48,11 @@ class PatternAwareContainer implements PageContainer
                 $pattern = $analyzer->getPattern();
             }
 
-            if (array_key_exists($pattern, $this->knownPattern)) {
+            if (array_key_exists($pattern, $this->knownPattern) && !$atBeginning) {
                 $this->knownPatternElements[] = $uri;
             } else {
-                $this->newPatternElements[] = $uri;
+                array_unshift($this->newPatternElements, $uri);
+                //$this->newPatternElements[] = $uri;
                 $this->knownPattern[$pattern] = true;
             }
         }
