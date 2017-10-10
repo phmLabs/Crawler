@@ -23,7 +23,7 @@ class Crawler
     private $httpClient;
     private $startUri;
     private $pageContainer;
-    private $parallelReqeusts;
+    private $parallelRequests;
 
     /**
      * @var Response[]
@@ -46,7 +46,7 @@ class Crawler
         $this->pageContainer = $container;
         $this->pageContainer->push($startUri);
         $this->startUri = $startUri;
-        $this->parallelReqeusts = $parallelRequests;
+        $this->parallelRequests = $parallelRequests;
     }
 
     public function addFilter(Filter $filter)
@@ -67,7 +67,7 @@ class Crawler
     public function next()
     {
         if (count($this->responseCache) == 0) {
-            $urls = $this->pageContainer->pop($this->parallelReqeusts);
+            $urls = $this->pageContainer->pop($this->parallelRequests);
 
             if (empty($urls)) {
                 return false;
