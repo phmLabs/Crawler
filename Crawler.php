@@ -9,6 +9,7 @@ use Ivory\HttpAdapter\PsrHttpAdapterInterface;
 use phm\HttpWebdriverClient\Http\Client\HttpClient;
 use phm\HttpWebdriverClient\Http\MultiRequestsException;
 use phm\HttpWebdriverClient\Http\Response\EffectiveUriAwareResponse;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
 use whm\Crawler\Http\RequestFactory;
 use whm\Crawler\PageContainer\PageContainer;
@@ -64,6 +65,28 @@ class Crawler
         return false;
     }
 
+    private function isResponseFiltered(ResponseInterface $response)
+    {
+        foreach ($this->filters as $filter) {
+            if ($filter->isResponseFiltered($response, $this->startUri)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param ResponseInterface[] $responses
+     */
+    private function filterResponses()
+    {
+        foreach ($this->responseCache as $key => $response) {
+            if ($this->isResponseFiltered($response)) {
+                unset($this->responseCache[$key]);
+            }
+        }
+    }
+
     public function next()
     {
         if (count($this->responseCache) == 0) {
@@ -77,8 +100,7 @@ class Crawler
 
             foreach ($urls as $url) {
                 if (!$this->isFiltered($url)) {
-                    $request = RequestFactory::getRequest($url, 'GET', 'php://memory', [], []);
-                    $requests[] = $request;
+                    $requests[] = RequestFactory::getRequest($url, 'GET', 'php://memory', [], []);
                 }
             }
 
@@ -108,6 +130,8 @@ class Crawler
                 }
             }
         }
+
+        $this->filterResponses();
 
         if (empty($this->responseCache)) {
             return $this->next();
