@@ -17,6 +17,4 @@ class ValidUrlFilter implements Filter
     {
         return false;
     }
-
-
 }
