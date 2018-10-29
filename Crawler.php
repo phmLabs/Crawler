@@ -4,8 +4,6 @@ namespace whm\Crawler;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Response;
-use Ivory\HttpAdapter\MultiHttpAdapterException;
-use Ivory\HttpAdapter\PsrHttpAdapterInterface;
 use phm\HttpWebdriverClient\Http\Client\HttpClient;
 use phm\HttpWebdriverClient\Http\MultiRequestsException;
 use phm\HttpWebdriverClient\Http\Response\EffectiveUriAwareResponse;
@@ -24,7 +22,7 @@ class Crawler
     private $httpClient;
     private $startUri;
     private $pageContainer;
-    private $parallelReqeusts;
+    private $parallelRequests;
 
     /**
      * @var Response[]
@@ -41,13 +39,10 @@ class Crawler
     public function __construct(HttpClient $httpClient, PageContainer $container, UriInterface $startUri, $parallelRequests = 5)
     {
         $this->httpClient = $httpClient;
-
-        // $this->httpClient = new Client();
-
         $this->pageContainer = $container;
         $this->pageContainer->push($startUri);
         $this->startUri = $startUri;
-        $this->parallelReqeusts = $parallelRequests;
+        $this->parallelRequests = $parallelRequests;
     }
 
     public function addFilter(Filter $filter)
@@ -90,7 +85,7 @@ class Crawler
     public function next()
     {
         if (count($this->responseCache) == 0) {
-            $urls = $this->pageContainer->pop($this->parallelReqeusts);
+            $urls = $this->pageContainer->pop($this->parallelRequests);
 
             if (empty($urls)) {
                 return false;
@@ -153,7 +148,7 @@ class Crawler
                     $originUri = $response->getUri();
                 }
 
-                $elements = $document->getUnorderedDependencies($originUri);
+                $elements = $document->getUnorderedDependencies($originUri, true, false);
 
                 foreach ($elements as $element) {
 
