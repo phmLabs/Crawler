@@ -27,7 +27,7 @@ class Crawler
     /**
      * @var Response[]
      */
-    private $responseCache;
+    private $responseCache = [];
 
     private $comingFrom = array();
 
