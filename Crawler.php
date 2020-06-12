@@ -25,16 +25,21 @@ class Crawler
     private $parallelRequests;
 
     /**
+     * @var string[]
+     */
+    private $credentials;
+
+    /**
      * @var Response[]
      */
     private $responseCache = [];
 
-    private $comingFrom = array();
+    private $comingFrom = [];
 
     /**
      * @var Filter[]
      */
-    private $filters = array();
+    private $filters = [];
 
     public function __construct(HttpClient $httpClient, PageContainer $container, UriInterface $startUri, $parallelRequests = 5)
     {
@@ -43,6 +48,10 @@ class Crawler
         $this->pageContainer->push($startUri);
         $this->startUri = $startUri;
         $this->parallelRequests = $parallelRequests;
+
+        if (Uri::isBasicAuth($this->startUri)) {
+            $this->credentials = Uri::getBasicAuthCredentials($this->startUri);
+        }
     }
 
     public function addFilter(Filter $filter)
@@ -91,7 +100,7 @@ class Crawler
                 return false;
             }
 
-            $requests = array();
+            $requests = [];
 
             foreach ($urls as $url) {
                 if (!$this->isFiltered($url)) {
@@ -152,10 +161,18 @@ class Crawler
 
                 foreach ($elements as $element) {
 
+                    if (Uri::isEqualDomain($element, $this->startUri)) {
+                        if ($this->credentials) {
+                            $element = $element->withUserInfo($this->credentials['username'], $this->credentials['password']);
+                        }
+                    }
+
                     $urlString = $this->createCleanUriString($element);
+
                     if (!array_key_exists($urlString, $this->comingFrom)) {
                         $this->comingFrom[$urlString] = $response->getUri();
                     }
+
                     $this->pageContainer->push($element);
                 }
             }
